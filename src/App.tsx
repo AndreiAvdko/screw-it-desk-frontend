@@ -4,6 +4,8 @@ import { AppShell } from '@/components/layout/app-shell'
 import { PlaceholderPage } from '@/pages/placeholder-page'
 import { TicketDetailPage } from '@/components/ticket-detail/ticket-detail-page'
 import { TicketsPage } from '@/pages/tickets-page'
+import { ObjectsPage } from '@/pages/objects-page'
+import { ObjectDetailPage } from '@/pages/object-detail-page'
 
 export default function App() {
   return (
@@ -15,10 +17,18 @@ export default function App() {
           <Route path="tickets/marking" element={<PlaceholderPage title="Маркировка" />} />
           <Route path="tickets/planner" element={<PlaceholderPage title="Планировщик работ" />} />
           <Route path="tickets/:id" element={<TicketDetailPage />} />
-          <Route
+          
+          {/* TODO */}
+          {/* <Route
             path="objects"
-            element={<PlaceholderPage title="Объекты | Оборудование" />}
-          />
+            element={<ObjectsPage/>}
+          /> */}
+
+                {/* Маршруты для объектов - ВАЖЕН ПОРЯДОК! */}
+          <Route path="objects" element={<ObjectsPage />} />
+          <Route path="objects/:id" element={<ObjectDetailPage />} />
+
+
           <Route
             path="users"
             element={<PlaceholderPage title="Пользователи" />}
