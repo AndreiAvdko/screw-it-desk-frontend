@@ -8,6 +8,10 @@ import { ObjectsPage } from '@/pages/objects-page'
 import { ObjectDetailPage } from '@/pages/object-detail-page'
 import { SchedulePage } from '@/pages/schedule-page'
 import { PlannerPage } from '@/pages/planner-page'
+import { AdminsPage } from '@/pages/admins-page'
+import { CustomersPage } from '@/pages/customers-page'
+import { ContractorsPage } from '@/pages/contractors-page'
+
 
 export default function App() {
   return (
@@ -33,10 +37,19 @@ export default function App() {
           <Route path="objects/:id" element={<ObjectDetailPage />} />
 
           
-          <Route
+          {/* <Route
             path="users"
             element={<PlaceholderPage title="Пользователи" />}
-          />
+          /> */}
+          <Route path="users/admins" element={<AdminsPage />} />
+          <Route path="users/customers" element={<CustomersPage />} />
+          <Route path="users/contractors" element={<ContractorsPage />} />
+          
+
+          {/* <Route path="users/admins" element={<PlaceholderPage title="Администраторы" />} />
+          <Route path="users/customers" element={<PlaceholderPage title="Заказчики" />} />
+          <Route path="users/contractors" element={<PlaceholderPage title="Исполнители" />} /> */}
+          
           <Route
             path="companies"
             element={<PlaceholderPage title="Компании" />}

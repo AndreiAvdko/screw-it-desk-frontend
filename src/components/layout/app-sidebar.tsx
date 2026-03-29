@@ -8,6 +8,8 @@ import {
   Package,
   Ticket,
   Users,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
@@ -24,9 +26,15 @@ const ticketSubItems = [
   { to: '/tickets/planner', label: 'Планировщик работ', end: false },
 ] as const
 
+// Подпункты для пользователей
+const userSubItems = [
+  { to: '/users/admins', label: 'Администратор', end: false },
+  { to: '/users/customers', label: 'Заказчики', end: false },
+  { to: '/users/contractors', label: 'Исполнители', end: false },
+] as const
+
 const mainNav = [
   { to: '/objects', label: 'Объекты | Оборудование', icon: Factory },
-  { to: '/users', label: 'Пользователи', icon: Users },
   { to: '/companies', label: 'Компании', icon: Building2 },
   { to: '/messages', label: 'Сообщения', icon: MessageSquare },
   { to: '/checklists', label: 'Чек-листы', icon: ClipboardList },
@@ -35,6 +43,17 @@ const mainNav = [
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false)
+  const [expandedSections, setExpandedSections] = useState({
+    tickets: true,
+    users: false,
+  })
+
+  const toggleSection = (section: 'tickets' | 'users') => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
 
   return (
     <aside
@@ -63,11 +82,22 @@ export function AppSidebar() {
 
       <ScrollArea className="flex-1">
         <nav className="flex flex-col gap-0.5 p-2" aria-label="Основное меню">
+          {/* Раздел Заявки */}
           {!collapsed && (
-            <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-foreground/90">
-              <Ticket className="size-4 shrink-0" aria-hidden />
-              <span>Заявки</span>
-            </div>
+            <button
+              onClick={() => toggleSection('tickets')}
+              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-foreground/90 hover:bg-sidebar-accent/50"
+            >
+              <div className="flex items-center gap-2">
+                <Ticket className="size-4 shrink-0" aria-hidden />
+                <span>Заявки</span>
+              </div>
+              {expandedSections.tickets ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </button>
           )}
           {collapsed && (
             <NavLink
@@ -86,7 +116,7 @@ export function AppSidebar() {
               <Ticket className="size-5" />
             </NavLink>
           )}
-          {!collapsed && (
+          {!collapsed && expandedSections.tickets && (
             <div className="flex flex-col gap-0.5 pl-2">
               {ticketSubItems.map((item) => (
                 <NavLink
@@ -110,6 +140,64 @@ export function AppSidebar() {
 
           {!collapsed && <Separator className="my-2 bg-sidebar-border" />}
 
+          {/* Раздел Пользователи */}
+          {!collapsed && (
+            <button
+              onClick={() => toggleSection('users')}
+              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-foreground/90 hover:bg-sidebar-accent/50"
+            >
+              <div className="flex items-center gap-2">
+                <Users className="size-4 shrink-0" aria-hidden />
+                <span>Пользователи</span>
+              </div>
+              {expandedSections.users ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </button>
+          )}
+          {collapsed && (
+            <NavLink
+              to="/users/admins"
+              title="Пользователи"
+              className={({ isActive }) =>
+                cn(
+                  'flex size-10 items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                  isActive
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                )
+              }
+            >
+              <Users className="size-5" />
+            </NavLink>
+          )}
+          {!collapsed && expandedSections.users && (
+            <div className="flex flex-col gap-0.5 pl-2">
+              {userSubItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    cn(
+                      'rounded-md border-l-2 py-1.5 pr-2 pl-6 text-[13px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                      isActive
+                        ? 'border-sidebar-primary bg-sidebar-accent/80 font-medium text-sidebar-accent-foreground'
+                        : 'border-transparent text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+                    )
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+
+          {!collapsed && <Separator className="my-2 bg-sidebar-border" />}
+
+          {/* Основные пункты меню */}
           {mainNav.map((item) => {
             const Icon = item.icon
             return (
