@@ -55,7 +55,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <span className="truncate text-sm font-semibold tracking-tight">
-              Hubex
+              HubexLike
             </span>
           )}
         </div>

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, ChevronDown, FolderTree, Plus } from 'lucide-react'
+import imagePlaceholder from '@/assets/placeholder.jpg';
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -201,8 +202,13 @@ export function ObjectDetailPage() {
 
         {/* Обслуживание */}
         {activeTab === 'service' && (
-          <div className="flex min-h-[40vh] items-center justify-center text-center text-sm text-muted-foreground">
-            Информация об обслуживании появится на следующих этапах.
+          <div className="flex min-h-[40vh] flex-col items-center justify-center text-center text-sm text-muted-foreground">
+            <p>Информация об обслуживании появится на следующих этапах.</p>
+              <img 
+                src={imagePlaceholder} 
+                alt="Иллюстрация обслуживания"
+                className="mt-4 max-w-full h-auto w-64"
+              />
           </div>
         )}
 

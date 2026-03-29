@@ -6,6 +6,8 @@ import { TicketDetailPage } from '@/components/ticket-detail/ticket-detail-page'
 import { TicketsPage } from '@/pages/tickets-page'
 import { ObjectsPage } from '@/pages/objects-page'
 import { ObjectDetailPage } from '@/pages/object-detail-page'
+import { SchedulePage } from '@/pages/schedule-page'
+import { PlannerPage } from '@/pages/planner-page'
 
 export default function App() {
   return (
@@ -13,9 +15,11 @@ export default function App() {
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<TicketsPage />} />
-          <Route path="tickets/schedule" element={<PlaceholderPage title="График" />} />
+          <Route path="tickets/schedule" element={<SchedulePage />} />
+          {/* <Route path="tickets/schedule" element={<PlaceholderPage title="График" />} /> */}
           <Route path="tickets/marking" element={<PlaceholderPage title="Маркировка" />} />
-          <Route path="tickets/planner" element={<PlaceholderPage title="Планировщик работ" />} />
+          {/* <Route path="tickets/planner" element={<PlaceholderPage title="Планировщик работ" />} /> */}
+          <Route path="tickets/planner" element={<PlannerPage />} />
           <Route path="tickets/:id" element={<TicketDetailPage />} />
           
           {/* TODO */}
@@ -28,7 +32,7 @@ export default function App() {
           <Route path="objects" element={<ObjectsPage />} />
           <Route path="objects/:id" element={<ObjectDetailPage />} />
 
-
+          
           <Route
             path="users"
             element={<PlaceholderPage title="Пользователи" />}
