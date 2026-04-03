@@ -83,7 +83,7 @@ export function LoginPage() {
             Screw It Desk
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Единая платформа для управления заявками, объектами и исполнителями
+            Единая платформа организации для управления заявками, объектами и исполнителями
           </p>
         </div>
 
@@ -238,7 +238,7 @@ export function LoginPage() {
               className="font-medium text-primary hover:text-primary/80 transition-colors"
               onClick={() => navigate('/register')}
             >
-              Зарегистрироваться
+              Оставьте заявку
             </button>
           </p>
         </div>

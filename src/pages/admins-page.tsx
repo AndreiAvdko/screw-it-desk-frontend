@@ -1,122 +1,256 @@
 // src/pages/users/admins-page.tsx
 import { useState } from 'react'
-import { Search, Plus, MoreVertical, Shield } from 'lucide-react'
+import { Plus, MoreVertical, Shield, RefreshCw, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useAdmins, useDeleteAdmin, adminKeys } from '@/hooks/useAdmins'
+import type { PaginationParams } from '@/lib/api/types/users-types/types'
+import { useQueryClient } from '@tanstack/react-query'
+import { cn } from '@/lib/utils'
 
-interface Admin {
-  id: string
-  name: string
-  email: string
-  role: string
-  status: 'active' | 'inactive'
-  lastActive: string
+const statusColors: Record<string, string> = {
+  active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
+  inactive: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  blocked: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300',
+  pending: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
 }
 
-const mockAdmins: Admin[] = [
-  {
-    id: '1',
-    name: 'Иванов Иван Иванович',
-    email: 'ivanov@milya.ru',
-    role: 'Главный администратор',
-    status: 'active',
-    lastActive: '29.03.2026'
-  },
-  {
-    id: '2',
-    name: 'Петрова Анна Сергеевна',
-    email: 'petrova@milya.ru',
-    role: 'Администратор',
-    status: 'active',
-    lastActive: '28.03.2026'
-  },
-  {
-    id: '3',
-    name: 'Сидоров Алексей Владимирович',
-    email: 'sidorov@milya.ru',
-    role: 'Администратор',
-    status: 'inactive',
-    lastActive: '15.03.2026'
+const statusLabels: Record<string, string> = {
+  active: 'Активен',
+  inactive: 'Неактивен',
+  blocked: 'Заблокирован',
+  pending: 'Ожидает',
+}
+
+// Компонент карточки администратора (единый для всех устройств)
+const AdminCard = ({ admin, onDelete }: { admin: any; onDelete: (id: string) => void }) => {
+  const getFullName = (admin: { firstName?: string | null; lastName?: string | null; username: string }) => {
+    if (admin.firstName || admin.lastName) {
+      return `${admin.lastName || ''} ${admin.firstName || ''}`.trim()
+    }
+    return admin.username
   }
-]
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ru', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  }
+
+  return (
+    <Card className="mb-3 hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 flex-1">
+            <Shield className="size-5 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-medium text-foreground">
+                  {getFullName(admin)}
+                </p>
+                <Badge 
+                  variant="outline" 
+                  className={cn(statusColors[admin.status], 'border-none text-xs')}
+                >
+                  {statusLabels[admin.status]}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1 break-all">{admin.email}</p>
+              
+              <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Роль:</span>
+                  <span className="text-foreground">
+                    {admin.role === 'admin' ? 'Администратор' : admin.role}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Последняя активность:</span>
+                  <span className="text-foreground">
+                    {admin.lastLoginAt ? formatDate(admin.lastLoginAt) : '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Меню с тремя точками - всегда справа */}
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button variant="ghost" size="icon-sm" className="shrink-0 ml-2">
+                <MoreVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom" className="w-auto min-w-[140px]">
+              <DropdownMenuItem className="cursor-pointer whitespace-nowrap">
+                <Edit className="mr-2 size-4 shrink-0" />
+                <span>Редактировать</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="cursor-pointer text-red-600 focus:text-red-600 whitespace-nowrap"
+                onClick={() => onDelete(admin.id)}
+              >
+                <Trash2 className="mr-2 size-4 shrink-0" />
+                <span>Удалить</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function AdminsPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  
-  const filteredAdmins = mockAdmins.filter(admin =>
-    admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    admin.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const queryClient = useQueryClient()
+  const [pagination, setPagination] = useState<PaginationParams>({
+    page: 1,
+    limit: 20,
+    sort: 'createdAt:desc',
+  })
+
+  const { data, isLoading, isFetching } = useAdmins({}, pagination)
+  const deleteAdmin = useDeleteAdmin()
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: adminKeys.lists() })
+  }
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Вы уверены, что хотите удалить администратора?')) {
+      await deleteAdmin.mutateAsync(id)
+    }
+  }
+
+  // Компонент пагинации
+  const PaginationComponent = () => {
+    if (!data?.pagination || data.pagination.pages <= 1) return null
+    
+    return (
+      <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+        <div className="text-sm text-muted-foreground order-2 sm:order-1">
+          Показано {data.data.length} из {data.pagination.total} администраторов
+        </div>
+        <div className="flex items-center gap-2 order-1 sm:order-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPagination(prev => ({ ...prev, page: prev.page! - 1 }))}
+            disabled={pagination.page === 1}
+            className="gap-1"
+          >
+            <ChevronLeft className="size-4" />
+            <span className="hidden sm:inline">Назад</span>
+          </Button>
+          <span className="text-sm">
+            {pagination.page} / {data.pagination.pages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPagination(prev => ({ ...prev, page: prev.page! + 1 }))}
+            disabled={pagination.page === data.pagination.pages}
+            className="gap-1"
+          >
+            <span className="hidden sm:inline">Вперед</span>
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Скелетон загрузки
+  const SkeletonCard = () => (
+    <Card className="mb-3">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 flex-1">
+            <Skeleton className="size-5 rounded mt-0.5" />
+            <div className="flex-1">
+              <Skeleton className="h-5 w-32 mb-2" />
+              <Skeleton className="h-4 w-48 mb-2" />
+              <div className="flex gap-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </div>
+          </div>
+          <Skeleton className="h-8 w-8 rounded" />
+        </div>
+      </CardContent>
+    </Card>
   )
-  
+
   return (
     <div className="flex min-h-full flex-col">
-      <div className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
+      {/* Заголовок */}
+      <div className="sticky top-0 z-10 border-b border-border bg-card px-4 py-3 shadow-sm sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">
+            <h1 className="text-lg font-semibold text-foreground sm:text-xl">
               Администраторы
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Управление администраторами системы
             </p>
           </div>
-          <Button size="sm">
-            <Plus className="mr-2 size-4" />
-            Добавить администратора
-          </Button>
-        </div>
-        
-        <div className="mt-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Поиск по имени или email..."
-              className="pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleRefresh}
+              disabled={isFetching}
+              title="Обновить"
+            >
+              <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
+            </Button>
+            <Button size="sm" className="gap-2">
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Добавить администратора</span>
+              <span className="sm:hidden">Добавить</span>
+            </Button>
           </div>
         </div>
       </div>
       
-      <div className="flex-1 p-6">
-        <div className="rounded-lg border border-border">
-          <div className="grid grid-cols-12 gap-4 border-b border-border bg-muted/30 px-4 py-3 text-sm font-medium text-muted-foreground">
-            <div className="col-span-5">Администратор</div>
-            <div className="col-span-3">Роль</div>
-            <div className="col-span-2">Статус</div>
-            <div className="col-span-2">Последняя активность</div>
+      {/* Список карточек */}
+      <div className="flex-1 p-4 sm:p-6">
+        {isLoading ? (
+          // Скелетон загрузки
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : data?.data.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground">
+            Администраторы не найдены
           </div>
-          
-          <div className="divide-y divide-border">
-            {filteredAdmins.map((admin) => (
-              <div key={admin.id} className="grid grid-cols-12 items-center gap-4 px-4 py-3">
-                <div className="col-span-5">
-                  <div className="flex items-center gap-2">
-                    <Shield className="size-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium text-foreground">{admin.name}</p>
-                      <p className="text-sm text-muted-foreground">{admin.email}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-span-3">
-                  <span className="text-sm text-foreground">{admin.role}</span>
-                </div>
-                <div className="col-span-2">
-                  <Badge variant={admin.status === 'active' ? 'default' : 'secondary'}>
-                    {admin.status === 'active' ? 'Активен' : 'Неактивен'}
-                  </Badge>
-                </div>
-                <div className="col-span-2 text-sm text-muted-foreground">
-                  {admin.lastActive}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ) : (
+          data?.data.map((admin) => (
+            <AdminCard 
+              key={admin.id} 
+              admin={admin}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
+
+        {/* Пагинация */}
+        <PaginationComponent />
       </div>
     </div>
   )

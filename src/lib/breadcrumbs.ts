@@ -5,7 +5,7 @@ const labels: Record<string, string> = {
   '/': `Заявки (${mockTickets.length})`,
   '/tickets/schedule': 'График',
   '/tickets/marking': 'Маркировка',
-  '/tickets/planner': 'Планировщик работ',
+  '/tickets/planner': 'Планирование работ',
   '/objects': 'Объекты | Оборудование',
   '/users': 'Пользователи',
   '/companies': 'Компании',

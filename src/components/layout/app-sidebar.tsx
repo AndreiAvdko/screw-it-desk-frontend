@@ -23,9 +23,9 @@ import { cn } from '@/lib/utils'
 
 const ticketSubItems = [
   { to: '/', label: 'Все заявки', end: true },
-  { to: '/tickets/schedule', label: 'График', end: false },
+  { to: '/tickets/schedule', label: 'Графики работы', end: false },
   { to: '/tickets/marking', label: 'Маркировка', end: false },
-  { to: '/tickets/planner', label: 'Планировщик работ', end: false },
+  { to: '/tickets/planner', label: 'Планирование работ', end: false },
 ] as const
 
 // Подпункты для пользователей
