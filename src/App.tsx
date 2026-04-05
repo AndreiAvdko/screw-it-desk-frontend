@@ -1,9 +1,8 @@
-// src/App.tsx
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { AuthProvider } from '@/context/AuthContexts'
-import { AppShell } from '@/components/layout/app-shell'
-import { ProtectedRoute } from '@/components/auth/protected-route'
-import { LoginPage } from '@/pages/login-page'
+import { AuthProvider } from '@/features/auth/context/AuthContexts'
+import { AppShell } from '@/shared/layout/AppShell'
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
+import { LoginPage } from '@/features/auth/components/LoginPage'
 import { protectedRoutes } from '@/configs/routes.config'
 import { Navigate } from 'react-router-dom'
 

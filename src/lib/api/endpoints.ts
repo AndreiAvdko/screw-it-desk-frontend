@@ -1,4 +1,3 @@
-// src/lib/api/endpoints.ts
 export const API_ENDPOINTS = {
   // Auth endpoints
   auth: {

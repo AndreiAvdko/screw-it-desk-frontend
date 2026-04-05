@@ -1,5 +1,5 @@
-import { getTicketDetail } from '@/data/mockTicketDetails'
-import { mockTickets } from '@/data/mockTickets'
+import { getTicketDetail } from '@/lib/mocks/handlers/mockTicketDetails'
+import { mockTickets } from '@/lib/mocks/handlers/mockTickets'
 
 const labels: Record<string, string> = {
   '/': `Заявки (${mockTickets.length})`,
